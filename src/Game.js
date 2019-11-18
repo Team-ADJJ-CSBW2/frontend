@@ -72,7 +72,9 @@ const Game = () => {
       setPlayer({ ...player, ...res.data });
       setCooldown(res.data.cooldown);
       console.log(res.data);
-    } catch {}
+    } catch (err) {
+      setCooldown(err.response.data.cooldown);
+    }
   };
 
   const getStatus = async () => {
@@ -91,7 +93,7 @@ const Game = () => {
       setCooldown(res.data.cooldown);
       console.log(res.data);
     } catch (err) {
-      setCooldown(err.cooldown);
+      setCooldown(err.response.data.cooldown);
     }
   };
 

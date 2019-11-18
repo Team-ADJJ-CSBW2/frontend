@@ -177,7 +177,8 @@ const Map = props => {
             .catch(err => console.log(err));
         }
       } catch (err) {
-        console.log(err);
+        setCooldown(err.response.data.cooldown);
+        console.log(err.response);
       }
     } else {
       alert(`You can't move ${direction.toUpperCase()}!`);
