@@ -10,7 +10,8 @@ import {
   faArrowUp,
   faArrowRight,
   faArrowDown,
-  faArrowLeft
+  faArrowLeft,
+  faQuestion
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -103,7 +104,28 @@ const Map = props => {
             </div>
           );
           // if room does not exist or has not been found, placeholder rowMap
-        } else rowMap.push(<div key={[x, y]}></div>);
+        } else
+          rowMap.push(
+            <div key={[x, y]} className={classes.room}>
+              <div className={classes.roomGrid}>
+                <div className={classes.hidden}>
+                  <FontAwesomeIcon icon={faArrowUp} />
+                </div>
+                <div className={classes.middle}>
+                  <div className={classes.hidden}>
+                    <FontAwesomeIcon icon={faArrowLeft} />
+                  </div>
+                  <FontAwesomeIcon icon={faQuestion} />
+                  <div className={classes.hidden}>
+                    <FontAwesomeIcon icon={faArrowRight} />
+                  </div>
+                </div>
+                <div className={classes.hidden}>
+                  <FontAwesomeIcon icon={faArrowDown} />
+                </div>
+              </div>
+            </div>
+          );
       }
       gameMap.push(
         <div className={classes.row} key={y}>
@@ -141,11 +163,18 @@ const Map = props => {
         console.log(moved);
         // only post to pg server if proper response from lambda and room does not already exist
         if (moved && !map.find(r => r.room_id === moved.data.room_id)) {
-          const res = await axios.post(
+          await axios.post(
             "https://treasure-hunt-map.herokuapp.com/api/map",
             moved.data
           );
-          console.log(res);
+          // refresh map
+          axios
+            .get("https://treasure-hunt-map.herokuapp.com/api/map")
+            .then(res => {
+              setMap(res.data.rooms);
+              setGraph(res.data.graph);
+            })
+            .catch(err => console.log(err));
         }
       } catch (err) {
         console.log(err);
