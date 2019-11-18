@@ -88,7 +88,7 @@ const GameStyles = makeStyles({
   row: {
     color: "blue",
     display: "flex",
-    // justifyContent: "space-between",
+    justifyContent: "center",
     margin: "1%"
   },
   room: {

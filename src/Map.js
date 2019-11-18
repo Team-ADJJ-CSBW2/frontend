@@ -46,11 +46,22 @@ const Map = props => {
 
   const yValues = coords.map(r => r[1]);
 
-  const minX = Math.min(...xValues);
-  const minY = Math.min(...yValues);
+  // const minX = Math.min(...xValues);
+  // const minY = Math.min(...yValues);
 
-  const maxX = Math.max(...xValues);
-  const maxY = Math.max(...yValues);
+  // const maxX = Math.max(...xValues);
+  // const maxY = Math.max(...yValues);
+
+  const currentCoords = player.coordinates
+    .slice(1, player.coordinates.length - 1)
+    .split(",")
+    .map(Number);
+
+  const minX = currentCoords[0] - 5;
+  const minY = currentCoords[1] - 3;
+
+  const maxX = currentCoords[0] + 5;
+  const maxY = currentCoords[1] + 3;
 
   const createMap = () => {
     // initialize map
