@@ -37,7 +37,7 @@ const AutoExplore = props => {
     path.push([[current], []]);
     const searched = {};
     while (path.length > 0) {
-      let cur = path.pop();
+      let cur = path.shift();
       let last = cur[0][cur[0].length - 1];
       if (last === "?" || graph[last] === undefined) {
         return cur[1];
