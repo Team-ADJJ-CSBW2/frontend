@@ -28,10 +28,7 @@ const Timer = props => {
   return (
     <>
       <div className={cooldown > 0 ? classes.timerStart : classes.timer}>
-        {cooldown}s
-      </div>
-      <div className="row">
-        <button onClick={toggle}>Set to 5 (for testing)</button>
+        {Math.ceil(cooldown)}s
       </div>
     </>
   );
