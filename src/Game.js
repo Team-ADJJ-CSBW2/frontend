@@ -46,7 +46,8 @@ const Game = () => {
         "https://lambda-treasure-hunt.herokuapp.com/api/adv/status/",
         {
           headers: {
-            Authorization: `Token ${token}`
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json"
           }
         }
       );

@@ -124,7 +124,8 @@ const Map = props => {
       const params = {
         direction,
         headers: {
-          authorization: `Token ${token}`
+          authorization: `Token ${token}`,
+          "Content-Type": "application/json"
         }
       };
       if (graph[player.room_id][direction] !== "?")
