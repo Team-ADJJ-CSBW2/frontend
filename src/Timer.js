@@ -6,10 +6,6 @@ const Timer = props => {
 
   const { setCooldown, cooldown } = props;
 
-  function toggle() {
-    setCooldown(5);
-  }
-
   useEffect(() => {
     // exit if we reach 0
     if (cooldown <= 0) {

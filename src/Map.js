@@ -34,17 +34,17 @@ const Map = props => {
       .catch(err => console.log(err));
   }, []);
 
+  // Render whole map
   // Convert coords to integers
-  const coords = map.map(r =>
-    r.coordinates
-      .slice(1, r.coordinates.length - 1)
-      .split(",")
-      .map(Number)
-  );
+  // const coords = map.map(r =>
+  //   r.coordinates
+  //     .slice(1, r.coordinates.length - 1)
+  //     .split(",")
+  //     .map(Number)
+  // );
 
-  const xValues = coords.map(r => r[0]);
-
-  const yValues = coords.map(r => r[1]);
+  // const xValues = coords.map(r => r[0]);
+  // const yValues = coords.map(r => r[1]);
 
   // const minX = Math.min(...xValues);
   // const minY = Math.min(...yValues);
@@ -52,6 +52,7 @@ const Map = props => {
   // const maxX = Math.max(...xValues);
   // const maxY = Math.max(...yValues);
 
+  // Render 5 to the east and west, 3 to the north and south
   const currentCoords = player.coordinates
     .slice(1, player.coordinates.length - 1)
     .split(",")

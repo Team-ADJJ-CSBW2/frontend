@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
+// import React, { useState } from "react";
 
 const AutoExplore = props => {
-  const { cooldown, player, graph, move } = props;
-  const [exploring, setExploring] = useState(false);
+  const { player, graph } = props;
+  // const { cooldown, player, graph, move } = props;
+  // const [exploring, setExploring] = useState(false);
 
   const shuffle = array => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -76,7 +78,7 @@ const AutoExplore = props => {
   };
 
   const stopExploration = () => {
-    setExploring(false);
+    // setExploring(false);
   };
 
   return (
