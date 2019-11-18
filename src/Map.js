@@ -16,11 +16,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Map = props => {
   const classes = GameStyles();
-  const { player, setPlayer, token } = props;
+  const { player, setPlayer, token, cooldown, setCooldown } = props;
 
   const [map, setMap] = useState([]);
   const [graph, setGraph] = useState();
-  const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
     axios
@@ -122,40 +121,31 @@ const Map = props => {
   const move = async direction => {
     if (player.exits.includes(direction)) {
       const params = {
-        direction,
-        headers: {
-          authorization: `Token ${token}`,
-          "Content-Type": "application/json"
-        }
+        direction
+      };
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`
       };
       if (graph[player.room_id][direction] !== "?")
-        params.next_room_id = graph[player.room_id][direction];
+        params.next_room_id = graph[player.room_id][direction].toString();
       console.log(params);
       try {
         const moved = await axios.post(
           "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
-          params
+          params,
+          { headers: headers }
         );
+        setPlayer({ ...player, ...moved.data });
+        setCooldown(moved.data.cooldown);
         console.log(moved);
         // only post to pg server if proper response from lambda and room does not already exist
-        if (moved && !map.find(r => r.room_id === moved.room_id)) {
-          // const {
-          //   room_id,
-          //   title,
-          //   description,
-          //   coordinates,
-          //   elevation,
-          //   terrain,
-          //   items,
-          //   exits
-          // } = moved;
-          // const res = await axios.post("http://localhost:5000/api/map", moved);
+        if (moved && !map.find(r => r.room_id === moved.data.room_id)) {
           const res = await axios.post(
             "https://treasure-hunt-map.herokuapp.com/api/map",
-            moved
+            moved.data
           );
-          setPlayer({ ...player, ...res.data });
-          setCooldown(res.data.cooldown);
+          console.log(res);
         }
       } catch (err) {
         console.log(err);

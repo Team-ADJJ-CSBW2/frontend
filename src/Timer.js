@@ -12,7 +12,10 @@ const Timer = props => {
 
   useEffect(() => {
     // exit if we reach 0
-    if (cooldown === 0) return;
+    if (cooldown <= 0) {
+      setCooldown(0);
+      return;
+    }
 
     const interval = setInterval(() => {
       setCooldown(cooldown => cooldown - 1);

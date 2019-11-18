@@ -23,9 +23,44 @@ const Game = () => {
     errors: [],
     messages: []
   });
+  const [cooldown, setCooldown] = useState(0);
 
-  useEffect(() => {
-    const init = async () => {
+  // useEffect(() => {
+  //   const init = async () => {
+  //     const res = await axios.get(
+  //       "https://lambda-treasure-hunt.herokuapp.com/api/adv/init/",
+  //       {
+  //         headers: {
+  //           Authorization: `Token ${token}`
+  //         }
+  //       }
+  //     );
+  //     setPlayer({ ...player, ...res.data });
+  //     console.log(res.data);
+  //   };
+  //   init();
+  // }, [player, token]);
+
+  // useEffect(() => {
+  //   const status = async () => {
+  //     const headers = {
+  //       "Content-Type": "application/json",
+  //       Authorization: `Token ${token}`
+  //     };
+  //     const body = {};
+  //     const res = await axios.post(
+  //       "https://lambda-treasure-hunt.herokuapp.com/api/adv/status/",
+  //       body,
+  //       { headers: headers }
+  //     );
+  //     setPlayer({ ...player, ...res.data });
+  //     console.log(res.data);
+  //   };
+  //   status();
+  // });
+
+  const init = async () => {
+    try {
       const res = await axios.get(
         "https://lambda-treasure-hunt.herokuapp.com/api/adv/init/",
         {
@@ -35,27 +70,30 @@ const Game = () => {
         }
       );
       setPlayer({ ...player, ...res.data });
+      setCooldown(res.data.cooldown);
       console.log(res.data);
-    };
-    init();
-  }, [player, token]);
+    } catch {}
+  };
 
-  useEffect(() => {
-    const status = async () => {
+  const getStatus = async () => {
+    try {
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`
+      };
+      const body = {};
       const res = await axios.post(
         "https://lambda-treasure-hunt.herokuapp.com/api/adv/status/",
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "application/json"
-          }
-        }
+        body,
+        { headers: headers }
       );
       setPlayer({ ...player, ...res.data });
+      setCooldown(res.data.cooldown);
       console.log(res.data);
-    };
-    status();
-  });
+    } catch (err) {
+      setCooldown(err.cooldown);
+    }
+  };
 
   return (
     <div className={classes.container}>
@@ -64,6 +102,11 @@ const Game = () => {
         <h2 className={classes.instructions}>
           Use Navigation Keys Below To Move.
         </h2>
+
+        <button onClick={() => init()}>Initialize</button>
+
+        <button onClick={() => getStatus()}>Get Status</button>
+
         <div className={classes.headerAndText}>
           <h2 className={classes.headertwo}>Name: </h2>
           <p className={classes.text}> {player.name}</p>
@@ -97,7 +140,13 @@ const Game = () => {
         </div>
       </div>
       <div className={classes.mapSection}>
-        <Map player={player} token={token} setPlayer={setPlayer} />
+        <Map
+          player={player}
+          token={token}
+          setPlayer={setPlayer}
+          cooldown={cooldown}
+          setCooldown={setCooldown}
+        />
       </div>
     </div>
   );
