@@ -1,11 +1,21 @@
-import React from "react";
-// import React, { useState } from "react";
+// import React from "react";
+import React, { useState, useEffect } from "react";
 
 const AutoExplore = props => {
-  const { player, graph } = props;
-  // const { cooldown, player, graph, move } = props;
+  // const { player, graph } = props;
+  const { cooldown, player, graph, move } = props;
   // const [exploring, setExploring] = useState(false);
+  const [isCooling, setIsCooling] = useState(false) 
 
+  useEffect(() => {
+    // exit if we reach 0
+    if (cooldown > 0) {
+      setIsCooling(true);
+    } else {
+      setIsCooling(false);
+    }
+  }, [cooldown]);
+  
   const shuffle = array => {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -33,6 +43,13 @@ const AutoExplore = props => {
   //     }
   //   }
   // };
+
+  const setCooling = () => {
+    if(cooldown > 0) {
+      setIsCooling(true)
+    }
+  }
+  
 
   const newRoomDirections = current => {
     const path = [];
@@ -80,11 +97,12 @@ const AutoExplore = props => {
   const stopExploration = () => {
     // setExploring(false);
   };
-
+  console.log(isCooling)
   return (
     <div>
       <button onClick={() => explore(player.room_id)}>Auto Explore</button>
       <button onClick={() => stopExploration()}>Stop Exploration</button>
+
     </div>
   );
 };

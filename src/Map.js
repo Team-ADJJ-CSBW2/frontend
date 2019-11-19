@@ -59,10 +59,10 @@ const Map = props => {
     .map(Number);
 
   const minX = currentCoords[0] - 5;
-  const minY = currentCoords[1] - 3;
+  const minY = currentCoords[1] - 2;
 
   const maxX = currentCoords[0] + 5;
-  const maxY = currentCoords[1] + 3;
+  const maxY = currentCoords[1] + 2;
 
   const createMap = () => {
     // initialize map
@@ -202,19 +202,33 @@ const Map = props => {
       <div className={classes.gridContainer}>{createMap()}</div>
       <div className={classes.navigation}>
         <h2 className={classes.headertwo}>Movement:</h2>
+        <div className={classes.navBotButtons}>
+        { player.exits.includes("n") ? 
         <button className={classes.navButtons} onClick={() => move("n")}>
           North
-        </button>
-        <div className={classes.navBotButtons}>
+        </button> : null}
+        { player.exits.includes("w") ? 
+        <button className={classes.navButtons} onClick={() => move("w")}>
+          West
+        </button> : null}
+        { player.exits.includes("s") ? 
+        <button className={classes.navButtons} onClick={() => move("s")}>
+          South
+        </button> : null}
+        { player.exits.includes("e") ? 
+        <button className={classes.navButtons} onClick={() => move("e")}>
+          East
+        </button> : null}
+        {/* <div className={classes.navBotButtons}>
           <button className={classes.navButtons} onClick={() => move("w")}>
-            West
+          { player.exits.includes("w") ? "West" : "disabled"}
           </button>
           <button className={classes.navButtons} onClick={() => move("s")}>
-            South
+          { player.exits.includes("s") ? "South" : "disabled"}
           </button>
           <button className={classes.navButtons} onClick={() => move("e")}>
-            East
-          </button>
+          { player.exits.includes("e") ? "East" : "disabled"}
+          </button> */}
         </div>
       </div>
       <div className={classes.navigation}>
