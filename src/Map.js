@@ -24,8 +24,8 @@ const Map = props => {
 
   useEffect(() => {
     axios
-      // .get("http://localhost:5000/api/map")
-      .get("https://treasure-hunt-map.herokuapp.com/api/map")
+      // .get("http://localhost:5000/api/rooms")
+      .get("https://treasure-hunt-map.herokuapp.com/api/rooms")
       .then(res => {
         console.log(res.data);
         setMap(res.data.rooms);
@@ -177,7 +177,7 @@ const Map = props => {
         if (moved && !map.find(r => r.room_id === moved.data.room_id)) {
           try {
             const update = await axios.post(
-              "https://treasure-hunt-map.herokuapp.com/api/map",
+              "https://treasure-hunt-map.herokuapp.com/api/rooms",
               moved.data
             );
             setMap(update.data.rooms);
@@ -234,9 +234,9 @@ const Map = props => {
           map={map}
           setMap={setMap}
         />
-        <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
+        {/* <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
           Get Current Room List and Graph
-        </button>
+        </button> */}
       </div>
     </div>
   );

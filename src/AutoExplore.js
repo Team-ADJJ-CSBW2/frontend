@@ -1,11 +1,12 @@
-import React from "react";
-// import React, { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
+import { classes } from "istanbul-lib-coverage";
 
 const AutoExplore = props => {
   // const { player, graph, setGraph, move, map, setMap } = props;
-  const { player, graph, setGraph, move } = props;
+  const { player, graph, move } = props;
   // const [exploring, setExploring] = useState(false);
+  const [roomForm, setRoomForm] = useState(0);
 
   const shuffle = array => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -15,25 +16,27 @@ const AutoExplore = props => {
     return array;
   };
 
-  // const findPath = (current, target) => {
-  //   const path = [];
-  //   path.push([[current], []]);
-  //   const searched = {};
-  //   while (path.length > 0) {
-  //     let cur = path.shift();
-  //     let last = cur[0][cur[0].length - 1];
-  //     let exits = graph[last];
-  //     if (searched[last] === undefined) {
-  //       if (last === target) return cur[1];
-  //       searched[last] = 1;
-  //       for (const e of exits) {
-  //         if (exits[e] === "?")
-  //           return `Direction ${e} in Room ${last} not yet explored! Directions to Room ${last} are ${cur[1]}`;
-  //         path.push([cur[0].concat(exits[e]), cur[1].concat(e)]);
-  //       }
-  //     }
-  //   }
-  // };
+  const findPath = (current, target) => {
+    const path = [];
+    path.push([[current], []]);
+    const searched = {};
+    while (path.length > 0) {
+      let cur = path.shift();
+      let last = cur[0][cur[0].length - 1];
+      let exits = graph[last];
+
+      if (searched[last] === undefined) {
+        if (last === target) return cur[1];
+        searched[last] = 1;
+        let directions = Object.keys(exits);
+        for (const d of directions) {
+          if (exits[d] === "?")
+            return `Direction ${d} in Room ${last} not yet explored! Directions to Room ${last} are ${cur[1]}`;
+          path.push([cur[0].concat(exits[d]), cur[1].concat(d)]);
+        }
+      }
+    }
+  };
 
   const newRoomDirections = (current, g = graph) => {
     const path = [];
@@ -72,31 +75,55 @@ const AutoExplore = props => {
     // Get first direction and move, wait for promise to resolve
     let dir = directions.shift();
     const result = await move(dir, g);
+    const newRoom = result.room_id;
 
     // Get updated graph - may not be necessary
     const updatedMap = await axios.get(
-      "https://treasure-hunt-map.herokuapp.com/api/map"
+      "https://treasure-hunt-map.herokuapp.com/api/rooms"
     );
     const updatedGraph = updatedMap.data.graph;
-    setGraph(updatedGraph);
 
-    console.log(newRoomDirections(result.room_id, updatedGraph));
-    console.log(updatedGraph[result.room_id]);
     // Use resolved promise from move to set cooldown
     await sleep(result.cooldown + 1);
     // recursively explore
-    if (newRoomDirections(result.room_id, updatedGraph).length > 0)
-      explore(result.room_id, updatedGraph);
+    if (newRoomDirections(newRoom, updatedGraph).length > 0)
+      explore(newRoom, updatedGraph);
   };
 
   const stopExploration = () => {
     // setExploring(false);
   };
 
+  const targetTravel = async (e, current, target) => {
+    e.preventDefault();
+    e.persist();
+    // Get directions
+    const directions = findPath(current, target);
+    console.log(directions);
+
+    // Get first direction and move, wait for promise to resolve
+    let dir = directions.shift();
+    const result = await move(dir);
+    const newRoom = result.room_id;
+
+    // Use resolved promise from move to set cooldown
+    await sleep(result.cooldown + 1);
+    if (newRoom !== target) targetTravel(e, newRoom, target);
+  };
+
   return (
     <div>
       <button onClick={() => explore(player.room_id)}>Auto Explore</button>
       <button onClick={() => stopExploration()}>Stop Exploration</button>
+      <p className={classes.headertwo}>Travel To Room # (0-499):</p>
+      <form onSubmit={e => targetTravel(e, player.room_id, roomForm)}>
+        <input
+          type="number"
+          value={roomForm}
+          onChange={e => setRoomForm(Number(e.target.value))}
+        />
+        <input type="submit" value="Submit" />
+      </form>
     </div>
   );
 };
