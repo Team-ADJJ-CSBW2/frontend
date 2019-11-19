@@ -69,7 +69,7 @@ const Game = () => {
           }
         }
       );
-      setPlayer({ ...player, ...res.data });
+      setPlayer(Object.assign(player, res.data));
       setCooldown(res.data.cooldown);
       console.log(res.data);
     } catch (err) {
@@ -89,7 +89,7 @@ const Game = () => {
         body,
         { headers: headers }
       );
-      setPlayer({ ...player, ...res.data });
+      setPlayer(Object.assign(player, res.data));
       setCooldown(res.data.cooldown);
       console.log(res.data);
     } catch (err) {

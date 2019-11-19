@@ -1,9 +1,10 @@
 import React from "react";
 // import React, { useState } from "react";
+import axios from "axios";
 
 const AutoExplore = props => {
-  const { player, graph } = props;
-  // const { cooldown, player, graph, move } = props;
+  // const { player, graph, setGraph, move, map, setMap } = props;
+  const { player, graph, setGraph, move } = props;
   // const [exploring, setExploring] = useState(false);
 
   const shuffle = array => {
@@ -34,17 +35,17 @@ const AutoExplore = props => {
   //   }
   // };
 
-  const newRoomDirections = current => {
+  const newRoomDirections = (current, g = graph) => {
     const path = [];
     path.push([[current], []]);
     const searched = {};
     while (path.length > 0) {
       let cur = path.shift();
       let last = cur[0][cur[0].length - 1];
-      if (last === "?" || graph[last] === undefined) {
+      if (last === "?" || g[last] === undefined) {
         return cur[1];
       }
-      let exits = graph[last];
+      let exits = g[last];
       // console.log("cur:", cur, "last:", last, "exits:", exits, "graph:", graph);
 
       if (searched[last] === undefined) {
@@ -60,22 +61,31 @@ const AutoExplore = props => {
     }
   };
 
-  const explore = current => {
-    const directions = newRoomDirections(current);
-    console.log("directions:", directions);
+  const sleep = cooldown => {
+    return new Promise(resolve => setTimeout(resolve, cooldown * 1000));
+  };
 
-    // setExploring(true);
-    // while (exploring === true && directions.length > 0) {
-    // while (directions.length > 0) {
-    //   setTimeout(function() {
-    //     let dir = directions.shift();
-    //     console.log(dir);
-    //     move(dir);
-    //     console.log(cooldown);
-    //     console.log("time to execute next move");
-    //   }, cooldown * 1000);
-    //   clearTimeout();
-    // }
+  const explore = async (current, g = graph) => {
+    // Get directions
+    const directions = newRoomDirections(current, g);
+    console.log(directions);
+    // Get first direction and move, wait for promise to resolve
+    let dir = directions.shift();
+    const result = await move(dir, g);
+
+    // Get updated graph - may not be necessary
+    const updatedMap = await axios.get(
+      "https://treasure-hunt-map.herokuapp.com/api/map"
+    );
+    const updatedGraph = updatedMap.data.graph;
+    setGraph(updatedGraph);
+
+    console.log(newRoomDirections(result.room_id, updatedGraph));
+    console.log(updatedGraph[result.room_id]);
+    // Use resolved promise from move to set cooldown
+    await sleep(result.cooldown + 1);
+    // recursively explore
+    explore(result.room_id, updatedGraph);
   };
 
   const stopExploration = () => {
