@@ -85,7 +85,8 @@ const AutoExplore = props => {
     // Use resolved promise from move to set cooldown
     await sleep(result.cooldown + 1);
     // recursively explore
-    explore(result.room_id, updatedGraph);
+    if (newRoomDirections(result.room_id, updatedGraph).length > 0)
+      explore(result.room_id, updatedGraph);
   };
 
   const stopExploration = () => {
