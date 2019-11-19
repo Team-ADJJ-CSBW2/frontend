@@ -120,9 +120,9 @@ const Game = () => {
         </div>
         <div className={classes.headerAndText}>
           <h2 className={classes.headertwo}>Items at Current Location:</h2>
-          {player.items.map(item => {
+          {player.items.map((item, index) => {
             return (
-              <p className={classes.text} key={item}>
+              <p className={classes.text} key={item + index}>
                 {item}
               </p>
             );

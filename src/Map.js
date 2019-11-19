@@ -150,7 +150,7 @@ const Map = props => {
     return gameMap;
   };
 
-  console.log("player:", player, "rooms:", map, "graph:", graph);
+  // console.log("player:", player, "rooms:", map, "graph:", graph);
 
   const move = async direction => {
     if (player.exits.includes(direction)) {
@@ -172,7 +172,7 @@ const Map = props => {
         );
         setPlayer({ ...player, ...moved.data });
         setCooldown(moved.data.cooldown);
-        console.log(moved);
+        console.log(moved.data);
         // only post to pg server if proper response from lambda and room does not already exist
         if (moved && !map.find(r => r.room_id === moved.data.room_id)) {
           await axios.post(

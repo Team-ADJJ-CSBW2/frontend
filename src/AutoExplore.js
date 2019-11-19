@@ -65,16 +65,17 @@ const AutoExplore = props => {
     console.log("directions:", directions);
 
     // setExploring(true);
-    // let dir = directions.shift();
-    // console.log(dir);
     // while (exploring === true && directions.length > 0) {
+    // while (directions.length > 0) {
     //   setTimeout(function() {
+    //     let dir = directions.shift();
+    //     console.log(dir);
+    //     move(dir);
     //     console.log(cooldown);
     //     console.log("time to execute next move");
-    //     move(dir);
-    //   }, (cooldown + 1) * 1000);
+    //   }, cooldown * 1000);
+    //   clearTimeout();
     // }
-    // clearTimeout();
   };
 
   const stopExploration = () => {
