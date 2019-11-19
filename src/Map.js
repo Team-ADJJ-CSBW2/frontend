@@ -166,6 +166,7 @@ const Map = props => {
       console.log(params);
       try {
         const moved = await axios.post(
+          // "https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/",
           "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
           params,
           { headers: headers }

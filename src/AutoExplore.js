@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { classes } from "istanbul-lib-coverage";
 
 const AutoExplore = props => {
   // const { player, graph, setGraph, move, map, setMap } = props;
   const { player, graph, move } = props;
   // const [exploring, setExploring] = useState(false);
   const [roomForm, setRoomForm] = useState(0);
+  const [getDirections, setGetDirections] = useState(0);
 
   const shuffle = array => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -26,7 +26,9 @@ const AutoExplore = props => {
       let exits = graph[last];
 
       if (searched[last] === undefined) {
-        if (last === target) return cur[1];
+        if (last === target) {
+          return cur;
+        }
         searched[last] = 1;
         let directions = Object.keys(exits);
         for (const d of directions) {
@@ -98,7 +100,7 @@ const AutoExplore = props => {
     e.preventDefault();
     e.persist();
     // Get directions
-    const directions = findPath(current, target);
+    const directions = findPath(current, target)[1];
     console.log(directions);
 
     // Get first direction and move, wait for promise to resolve
@@ -111,18 +113,31 @@ const AutoExplore = props => {
     if (newRoom !== target) targetTravel(e, newRoom, target);
   };
 
+  const printPath = async (e, current, target) => {
+    e.preventDefault();
+    const result = findPath(current, target);
+    console.log(result);
+  };
+
   return (
     <div>
       <button onClick={() => explore(player.room_id)}>Auto Explore</button>
       <button onClick={() => stopExploration()}>Stop Exploration</button>
-      <p className={classes.headertwo}>Travel To Room # (0-499):</p>
       <form onSubmit={e => targetTravel(e, player.room_id, roomForm)}>
         <input
           type="number"
           value={roomForm}
           onChange={e => setRoomForm(Number(e.target.value))}
         />
-        <input type="submit" value="Submit" />
+        <input type="submit" value="Travel To Room # (0-499)" />
+      </form>
+      <form onSubmit={e => printPath(e, player.room_id, getDirections)}>
+        <input
+          type="number"
+          value={getDirections}
+          onChange={e => setGetDirections(Number(e.target.value))}
+        />
+        <input type="submit" value="Get Directions To Room # (0-499)" />
       </form>
     </div>
   );
