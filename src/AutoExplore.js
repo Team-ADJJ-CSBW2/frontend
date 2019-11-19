@@ -104,11 +104,13 @@ const AutoExplore = props => {
       Authorization: `Token ${token}`
     };
     try {
-      await axios.post(
+      const result = await axios.post(
         "https://lambda-treasure-hunt.herokuapp.com/api/adv/take/",
         { name: player.items[0] },
         { headers: headers }
       );
+      console.log(result);
+      await sleep(result.data.cooldown + 1);
       getStatus();
     } catch (err) {
       console.log(err);
@@ -127,12 +129,12 @@ const AutoExplore = props => {
     console.log(dir);
     const result = await move(dir, graph);
     console.log("result of move", result);
-    // Get updated graph - may not be necessary
-    const updatedMap = await axios.get(
-      "https://treasure-hunt-map.herokuapp.com/api/rooms"
-    );
-    const updatedGraph = updatedMap.data.graph;
-    setGraph(updatedGraph);
+    // // Get updated graph - may not be necessary
+    // const updatedMap = await axios.get(
+    //   "https://treasure-hunt-map.herokuapp.com/api/rooms"
+    // );
+    // const updatedGraph = updatedMap.data.graph;
+    // setGraph(updatedGraph);
     await sleep(result.cooldown + 1);
     // if treasure in room
     if (result.items.length) {
