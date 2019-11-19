@@ -17,7 +17,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Map = props => {
   const classes = GameStyles();
-  const { player, setPlayer, token, cooldown, setCooldown } = props;
+  const { player, setPlayer, token, cooldown, setCooldown, getStatus } = props;
 
   const [map, setMap] = useState([]);
   const [graph, setGraph] = useState();
@@ -25,7 +25,7 @@ const Map = props => {
   useEffect(() => {
     axios
       // .get("http://localhost:5000/api/map")
-      .get("https://treasure-hunt-map.herokuapp.com/api/map")
+      .get("https://treasure-hunt-map.herokuapp.com/api/rooms")
       .then(res => {
         console.log(res.data);
         setMap(res.data.rooms);
@@ -153,6 +153,7 @@ const Map = props => {
   // console.log("player:", player, "rooms:", map, "graph:", graph);
 
   const move = async (direction, g = graph) => {
+    console.log("player exits", player.exits);
     if (player.exits.includes(direction)) {
       const params = {
         direction
@@ -177,7 +178,7 @@ const Map = props => {
         if (moved && !map.find(r => r.room_id === moved.data.room_id)) {
           try {
             const update = await axios.post(
-              "https://treasure-hunt-map.herokuapp.com/api/map",
+              "https://treasure-hunt-map.herokuapp.com/api/rooms",
               moved.data
             );
             setMap(update.data.rooms);
@@ -233,6 +234,7 @@ const Map = props => {
           move={move}
           map={map}
           setMap={setMap}
+          getStatus={getStatus}
         />
         <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
           Get Current Room List and Graph

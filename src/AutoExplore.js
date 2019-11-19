@@ -3,11 +3,14 @@ import React from "react";
 import axios from "axios";
 
 const AutoExplore = props => {
+  const token = process.env.REACT_APP_TOKEN || localStorage.getItem("token");
+
   // const { player, graph, setGraph, move, map, setMap } = props;
-  const { player, graph, setGraph, move } = props;
+  const { player, graph, setGraph, move, getStatus } = props;
   // const [exploring, setExploring] = useState(false);
 
   const shuffle = array => {
+    console.log("shuffle", array);
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
@@ -75,7 +78,7 @@ const AutoExplore = props => {
 
     // Get updated graph - may not be necessary
     const updatedMap = await axios.get(
-      "https://treasure-hunt-map.herokuapp.com/api/map"
+      "https://treasure-hunt-map.herokuapp.com/api/rooms"
     );
     const updatedGraph = updatedMap.data.graph;
     setGraph(updatedGraph);
@@ -93,10 +96,60 @@ const AutoExplore = props => {
     // setExploring(false);
   };
 
+  const pickupTreasure = async () => {
+    // POST to pick up treasure in room
+    console.log(player);
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`
+    };
+    try {
+      await axios.post(
+        "https://lambda-treasure-hunt.herokuapp.com/api/adv/take/",
+        { name: player.items[0] },
+        { headers: headers }
+      );
+      getStatus();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const findTreasure = async () => {
+    // Walk around randomly
+    // console.log("player", player);
+    if (player.items.length) {
+      pickupTreasure();
+    }
+    const exits = [...player.exits];
+    const directions = shuffle(exits);
+    const dir = directions.pop();
+    console.log(dir);
+    const result = await move(dir, graph);
+    console.log("result of move", result);
+    // Get updated graph - may not be necessary
+    const updatedMap = await axios.get(
+      "https://treasure-hunt-map.herokuapp.com/api/rooms"
+    );
+    const updatedGraph = updatedMap.data.graph;
+    setGraph(updatedGraph);
+    await sleep(result.cooldown + 1);
+    // if treasure in room
+    if (result.items.length) {
+      // pick it up
+      await pickupTreasure();
+    } else {
+      findTreasure();
+    }
+    // if held treasure ===
+  };
+
   return (
     <div>
       <button onClick={() => explore(player.room_id)}>Auto Explore</button>
       <button onClick={() => stopExploration()}>Stop Exploration</button>
+      <button onClick={() => pickupTreasure()}>Pickup Treasure</button>
+      <button onClick={() => findTreasure()}>Find Treasure</button>
     </div>
   );
 };
