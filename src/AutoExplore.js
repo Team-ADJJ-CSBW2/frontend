@@ -74,6 +74,10 @@ const AutoExplore = props => {
     // Get directions
     const directions = newRoomDirections(current, g);
     console.log(directions);
+    if (directions === undefined) {
+      console.log("All rooms have been explored!");
+      return;
+    }
     // Get first direction and move, wait for promise to resolve
     let dir = directions.shift();
     const result = await move(dir, g);
