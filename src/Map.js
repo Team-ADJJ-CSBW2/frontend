@@ -24,8 +24,8 @@ const Map = props => {
 
   useEffect(() => {
     axios
-      // .get("http://localhost:5000/api/map")
-      .get("https://treasure-hunt-map.herokuapp.com/api/map")
+      // .get("http://localhost:5000/api/rooms")
+      .get("https://treasure-hunt-map.herokuapp.com/api/rooms")
       .then(res => {
         console.log(res.data);
         setMap(res.data.rooms);
@@ -152,7 +152,7 @@ const Map = props => {
 
   // console.log("player:", player, "rooms:", map, "graph:", graph);
 
-  const move = async direction => {
+  const move = async (direction, g = graph) => {
     if (player.exits.includes(direction)) {
       const params = {
         direction
@@ -161,33 +161,36 @@ const Map = props => {
         "Content-Type": "application/json",
         Authorization: `Token ${token}`
       };
-      if (graph[player.room_id][direction] !== "?")
-        params.next_room_id = graph[player.room_id][direction].toString();
+      if (g[player.room_id][direction] !== "?")
+        params.next_room_id = g[player.room_id][direction].toString();
       console.log(params);
       try {
         const moved = await axios.post(
+          // "https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/",
           "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
           params,
           { headers: headers }
         );
-        setPlayer({ ...player, ...moved.data });
+        setPlayer(Object.assign(player, moved.data));
         setCooldown(moved.data.cooldown);
         console.log(moved.data);
         // only post to pg server if proper response from lambda and room does not already exist
         if (moved && !map.find(r => r.room_id === moved.data.room_id)) {
-          await axios.post(
-            "https://treasure-hunt-map.herokuapp.com/api/map",
-            moved.data
-          );
-          // refresh map
-          axios
-            .get("https://treasure-hunt-map.herokuapp.com/api/map")
-            .then(res => {
-              setMap(res.data.rooms);
-              setGraph(res.data.graph);
-            })
-            .catch(err => console.log(err));
+          try {
+            const update = await axios.post(
+              "https://treasure-hunt-map.herokuapp.com/api/rooms",
+              moved.data
+            );
+            setMap(update.data.rooms);
+            setGraph(update.data.graph);
+          } catch (err) {
+            console.log(err, err.response);
+          }
+          // return for use in auto moving scripts when new room is added to server
+          return moved.data;
         }
+        // return for use in auto moving scripts when visiting exisiting room
+        else return moved.data;
       } catch (err) {
         setCooldown(err.response.data.cooldown);
         console.log(err.response);
@@ -227,8 +230,14 @@ const Map = props => {
           cooldown={cooldown}
           player={player}
           graph={graph}
+          setGraph={setGraph}
           move={move}
+          map={map}
+          setMap={setMap}
         />
+        {/* <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
+          Get Current Room List and Graph
+        </button> */}
       </div>
     </div>
   );

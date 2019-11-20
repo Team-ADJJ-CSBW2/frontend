@@ -69,7 +69,7 @@ const Game = () => {
           }
         }
       );
-      setPlayer({ ...player, ...res.data });
+      setPlayer(Object.assign(player, res.data));
       setCooldown(res.data.cooldown);
       console.log(res.data);
     } catch (err) {
@@ -89,11 +89,38 @@ const Game = () => {
         body,
         { headers: headers }
       );
-      setPlayer({ ...player, ...res.data });
+      setPlayer(Object.assign(player, res.data));
       setCooldown(res.data.cooldown);
       console.log(res.data);
     } catch (err) {
       setCooldown(err.response.data.cooldown);
+    }
+  };
+
+  const sleep = cooldown => {
+    return new Promise(resolve => setTimeout(resolve, cooldown * 1000));
+  };
+
+  const pickupTreasure = async name => {
+    // POST to pick up treasure in room
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`
+    };
+    try {
+      const res = await axios.post(
+        "https://lambda-treasure-hunt.herokuapp.com/api/adv/take/",
+        { name },
+        { headers: headers }
+      );
+      setCooldown(res.data.cooldown);
+
+      await sleep(res.data.cooldown + 1);
+      init();
+      await sleep(2);
+      getStatus();
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -122,9 +149,10 @@ const Game = () => {
           <h2 className={classes.headertwo}>Items at Current Location:</h2>
           {player.items.map((item, index) => {
             return (
-              <p className={classes.text} key={item + index}>
-                {item}
-              </p>
+              <div key={item + index}>
+                <p className={classes.text}>{item}</p>
+                <button onClick={() => pickupTreasure(item)}>Pick Up</button>
+              </div>
             );
           })}
         </div>
