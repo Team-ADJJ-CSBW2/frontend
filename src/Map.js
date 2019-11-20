@@ -24,11 +24,7 @@ const Map = props => {
 
   useEffect(() => {
     axios
-<<<<<<< HEAD
-      // .get("http://localhost:5000/api/map")
-=======
       // .get("http://localhost:5000/api/rooms")
->>>>>>> origin
       .get("https://treasure-hunt-map.herokuapp.com/api/rooms")
       .then(res => {
         console.log(res.data);

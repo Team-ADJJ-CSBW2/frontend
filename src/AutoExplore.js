@@ -5,17 +5,13 @@ const AutoExplore = props => {
   const token = process.env.REACT_APP_TOKEN || localStorage.getItem("token");
 
   // const { player, graph, setGraph, move, map, setMap } = props;
-<<<<<<< HEAD
   const { player, graph, setGraph, move, getStatus } = props;
-=======
-  const { player, graph, move } = props;
->>>>>>> origin
   // const [exploring, setExploring] = useState(false);
   const [roomForm, setRoomForm] = useState(0);
   const [getDirections, setGetDirections] = useState(0);
 
   const shuffle = array => {
-    console.log("shuffle", array);
+    // console.log("shuffle", array);
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
@@ -80,7 +76,7 @@ const AutoExplore = props => {
   const explore = async (current, g = graph) => {
     // Get directions
     const directions = newRoomDirections(current, g);
-    console.log(directions);
+    // console.log(directions);
     if (directions === undefined) {
       console.log("All rooms have been explored!");
       return;
@@ -103,11 +99,10 @@ const AutoExplore = props => {
       explore(newRoom, updatedGraph);
   };
 
-  const stopExploration = () => {
-    // setExploring(false);
-  };
+  // const stopExploration = () => {
+  //   // setExploring(false);
+  // };
 
-<<<<<<< HEAD
   const pickupTreasure = async () => {
     // POST to pick up treasure in room
     console.log(player);
@@ -133,7 +128,15 @@ const AutoExplore = props => {
     // Walk around randomly
     // console.log("player", player);
     if (player.items.length) {
-      pickupTreasure();
+      // If items in current room pickup and find more
+      await pickupTreasure();
+      await sleep(result.cooldown + 1);
+      findTreasure();
+    }
+    if (player.encumbrance >= player.strength) {
+      // if fully encumbered stop searching
+      console.log("inventory full, sell items");
+      return;
     }
     const exits = [...player.exits];
     const directions = shuffle(exits);
@@ -152,11 +155,13 @@ const AutoExplore = props => {
     if (result.items.length) {
       // pick it up
       await pickupTreasure();
+      await sleep(result.cooldown + 1);
+      findTreasure();
     } else {
       findTreasure();
     }
-    // if held treasure ===
-=======
+  };
+
   const targetTravel = async (e, current, target) => {
     e.preventDefault();
     e.persist();
@@ -178,17 +183,14 @@ const AutoExplore = props => {
     e.preventDefault();
     const result = findPath(current, target);
     console.log(result);
->>>>>>> origin
   };
 
   return (
     <div>
       <button onClick={() => explore(player.room_id)}>Auto Explore</button>
-      <button onClick={() => stopExploration()}>Stop Exploration</button>
-<<<<<<< HEAD
+      {/* <button onClick={() => stopExploration()}>Stop Exploration</button> */}
       <button onClick={() => pickupTreasure()}>Pickup Treasure</button>
       <button onClick={() => findTreasure()}>Find Treasure</button>
-=======
       <form onSubmit={e => targetTravel(e, player.room_id, roomForm)}>
         <input
           type="number"
@@ -205,7 +207,6 @@ const AutoExplore = props => {
         />
         <input type="submit" value="Get Directions To Room # (0-499)" />
       </form>
->>>>>>> origin
     </div>
   );
 };
