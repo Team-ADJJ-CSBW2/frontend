@@ -162,16 +162,63 @@ const AutoExplore = props => {
     }
   };
 
+  const dash = async (direction, rooms) => {
+    const body = {
+      direction: direction,
+      num_rooms: rooms.length,
+      next_room_ids: rooms
+    };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`
+    };
+    console.log("dash POST body", body);
+    await axios.post(
+      "https://lambda-treasure-hunt.herokuapp.com/api/adv/dash/",
+      body,
+      { headers: headers }
+    );
+  };
+
   const targetTravel = async (e, current, target) => {
     e.preventDefault();
     e.persist();
     // Get directions
-    const directions = findPath(current, target)[1];
+    const directions = findPath(current, target);
+    // directions by cardinal direction
+    const travelDirections = directions[1];
+    // rooms in directions path
+    //! spliced to remove current room from array so index numbers match
+    const roomDirections = directions[0].splice(0, 1);
     console.log(directions);
 
+    // Variables for dash
+    // Check first direction
+    const dashDirection = travelDirections[0];
+    let dashArray = [];
+    // loop over directions
+    for (let i = 0; i < travelDirections.length; i++) {
+      // if next direction === current direction
+      if (travelDirections[i] === dashDirection) {
+        // add room number to dash array
+        dashArray.push(roomDirections[i]);
+      } else {
+        // else break loop
+        break;
+      }
+    }
+
+    // if dashArray.length >= 3
+    let result;
+    // if (dashArray.length >= 2) {
+    //   // dash
+    //   result = await dash(dashDirection, dashArray);
+    // }
+
     // Get first direction and move, wait for promise to resolve
-    let dir = directions.shift();
-    const result = await move(dir);
+    let dir = travelDirections.shift();
+    result = await move(dir);
+
     const newRoom = result.room_id;
 
     // Use resolved promise from move to set cooldown

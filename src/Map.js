@@ -153,7 +153,7 @@ const Map = props => {
   // console.log("player:", player, "rooms:", map, "graph:", graph);
 
   const move = async (direction, g = graph) => {
-    console.log("player exits", player.exits);
+    // console.log("player exits", player.exits);
     if (player.exits.includes(direction)) {
       const params = {
         direction
@@ -166,6 +166,10 @@ const Map = props => {
         params.next_room_id = g[player.room_id][direction].toString();
       console.log(params);
       try {
+        // if current room or next room.terrain !== "CAVE"
+        // fly
+        // else
+        // move
         const moved = await axios.post(
           // "https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/",
           "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
