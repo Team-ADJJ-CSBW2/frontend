@@ -191,7 +191,7 @@ const AutoExplore = props => {
 
     // if dashArray.length >= 3
     let result;
-    if (dashArray.length >= 2) {
+    if (dashArray.length >= 3) {
       // conver dashArray and into string
       // dashString = dashArray.toString()
       // dash

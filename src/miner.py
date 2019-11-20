@@ -14,4 +14,4 @@ def valid_proof(last_proof, proof):
     return proof_hash[:6] == '000000'
 
 
-print(proof_of_work(14247436))
+print(proof_of_work(10111946))
