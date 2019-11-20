@@ -205,6 +205,33 @@ const Map = props => {
     }
   };
 
+  const dash = async (direction, rooms) => {
+    const body = {
+      direction: direction,
+      num_rooms: rooms.length.toString(),
+      next_room_ids: rooms.toString()
+    };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`
+    };
+    console.log("dash POST body", body);
+    try {
+      const result = await axios.post(
+        "https://lambda-treasure-hunt.herokuapp.com/api/adv/dash/",
+        body,
+        { headers: headers }
+      );
+      console.log(result.data);
+      setPlayer(Object.assign(player, result.data));
+      setCooldown(result.data.cooldown);
+      return result.data;
+    } catch (err) {
+      setCooldown(err.response.data.cooldown);
+      console.log(err.response);
+    }
+  };
+
   return (
     <div>
       <div className={classes.gridContainer}>{createMap()}</div>
@@ -240,6 +267,7 @@ const Map = props => {
           map={map}
           setMap={setMap}
           getStatus={getStatus}
+          dash={dash}
         />
         {/* <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
           Get Current Room List and Graph
