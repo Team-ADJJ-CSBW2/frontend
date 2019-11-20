@@ -24,7 +24,11 @@ const Map = props => {
 
   useEffect(() => {
     axios
+<<<<<<< HEAD
       // .get("http://localhost:5000/api/map")
+=======
+      // .get("http://localhost:5000/api/rooms")
+>>>>>>> origin
       .get("https://treasure-hunt-map.herokuapp.com/api/rooms")
       .then(res => {
         console.log(res.data);
@@ -167,6 +171,7 @@ const Map = props => {
       console.log(params);
       try {
         const moved = await axios.post(
+          // "https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/",
           "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
           params,
           { headers: headers }
@@ -236,9 +241,9 @@ const Map = props => {
           setMap={setMap}
           getStatus={getStatus}
         />
-        <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
+        {/* <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
           Get Current Room List and Graph
-        </button>
+        </button> */}
       </div>
     </div>
   );

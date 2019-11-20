@@ -1,13 +1,18 @@
-import React from "react";
-// import React, { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
 const AutoExplore = props => {
   const token = process.env.REACT_APP_TOKEN || localStorage.getItem("token");
 
   // const { player, graph, setGraph, move, map, setMap } = props;
+<<<<<<< HEAD
   const { player, graph, setGraph, move, getStatus } = props;
+=======
+  const { player, graph, move } = props;
+>>>>>>> origin
   // const [exploring, setExploring] = useState(false);
+  const [roomForm, setRoomForm] = useState(0);
+  const [getDirections, setGetDirections] = useState(0);
 
   const shuffle = array => {
     console.log("shuffle", array);
@@ -18,25 +23,29 @@ const AutoExplore = props => {
     return array;
   };
 
-  // const findPath = (current, target) => {
-  //   const path = [];
-  //   path.push([[current], []]);
-  //   const searched = {};
-  //   while (path.length > 0) {
-  //     let cur = path.shift();
-  //     let last = cur[0][cur[0].length - 1];
-  //     let exits = graph[last];
-  //     if (searched[last] === undefined) {
-  //       if (last === target) return cur[1];
-  //       searched[last] = 1;
-  //       for (const e of exits) {
-  //         if (exits[e] === "?")
-  //           return `Direction ${e} in Room ${last} not yet explored! Directions to Room ${last} are ${cur[1]}`;
-  //         path.push([cur[0].concat(exits[e]), cur[1].concat(e)]);
-  //       }
-  //     }
-  //   }
-  // };
+  const findPath = (current, target) => {
+    const path = [];
+    path.push([[current], []]);
+    const searched = {};
+    while (path.length > 0) {
+      let cur = path.shift();
+      let last = cur[0][cur[0].length - 1];
+      let exits = graph[last];
+
+      if (searched[last] === undefined) {
+        if (last === target) {
+          return cur;
+        }
+        searched[last] = 1;
+        let directions = Object.keys(exits);
+        for (const d of directions) {
+          if (exits[d] === "?")
+            return `Direction ${d} in Room ${last} not yet explored! Directions to Room ${last} are ${cur[1]}`;
+          path.push([cur[0].concat(exits[d]), cur[1].concat(d)]);
+        }
+      }
+    }
+  };
 
   const newRoomDirections = (current, g = graph) => {
     const path = [];
@@ -72,30 +81,33 @@ const AutoExplore = props => {
     // Get directions
     const directions = newRoomDirections(current, g);
     console.log(directions);
+    if (directions === undefined) {
+      console.log("All rooms have been explored!");
+      return;
+    }
     // Get first direction and move, wait for promise to resolve
     let dir = directions.shift();
     const result = await move(dir, g);
+    const newRoom = result.room_id;
 
     // Get updated graph - may not be necessary
     const updatedMap = await axios.get(
       "https://treasure-hunt-map.herokuapp.com/api/rooms"
     );
     const updatedGraph = updatedMap.data.graph;
-    setGraph(updatedGraph);
 
-    console.log(newRoomDirections(result.room_id, updatedGraph));
-    console.log(updatedGraph[result.room_id]);
     // Use resolved promise from move to set cooldown
     await sleep(result.cooldown + 1);
     // recursively explore
-    if (newRoomDirections(result.room_id, updatedGraph).length > 0)
-      explore(result.room_id, updatedGraph);
+    if (newRoomDirections(newRoom, updatedGraph).length > 0)
+      explore(newRoom, updatedGraph);
   };
 
   const stopExploration = () => {
     // setExploring(false);
   };
 
+<<<<<<< HEAD
   const pickupTreasure = async () => {
     // POST to pick up treasure in room
     console.log(player);
@@ -144,14 +156,56 @@ const AutoExplore = props => {
       findTreasure();
     }
     // if held treasure ===
+=======
+  const targetTravel = async (e, current, target) => {
+    e.preventDefault();
+    e.persist();
+    // Get directions
+    const directions = findPath(current, target)[1];
+    console.log(directions);
+
+    // Get first direction and move, wait for promise to resolve
+    let dir = directions.shift();
+    const result = await move(dir);
+    const newRoom = result.room_id;
+
+    // Use resolved promise from move to set cooldown
+    await sleep(result.cooldown + 1);
+    if (newRoom !== target) targetTravel(e, newRoom, target);
+  };
+
+  const printPath = async (e, current, target) => {
+    e.preventDefault();
+    const result = findPath(current, target);
+    console.log(result);
+>>>>>>> origin
   };
 
   return (
     <div>
       <button onClick={() => explore(player.room_id)}>Auto Explore</button>
       <button onClick={() => stopExploration()}>Stop Exploration</button>
+<<<<<<< HEAD
       <button onClick={() => pickupTreasure()}>Pickup Treasure</button>
       <button onClick={() => findTreasure()}>Find Treasure</button>
+=======
+      <form onSubmit={e => targetTravel(e, player.room_id, roomForm)}>
+        <input
+          type="number"
+          value={roomForm}
+          onChange={e => setRoomForm(Number(e.target.value))}
+        />
+        <input type="submit" value="Travel To Room # (0-499)" />
+      </form>
+      <form onSubmit={e => printPath(e, player.room_id, getDirections)}>
+        <input
+          type="number"
+          value={getDirections}
+          onChange={e => setGetDirections(Number(e.target.value))}
+        />
+        <input type="submit" value="Get Directions To Room # (0-499)" />
+      </form>
+>>>>>>> origin
     </div>
   );
 };
