@@ -17,7 +17,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Map = props => {
   const classes = GameStyles();
-  const { player, setPlayer, token, cooldown, setCooldown } = props;
+  const { player, setPlayer, token, cooldown, setCooldown, getStatus } = props;
 
   const [map, setMap] = useState([]);
   const [graph, setGraph] = useState();
@@ -153,6 +153,7 @@ const Map = props => {
   // console.log("player:", player, "rooms:", map, "graph:", graph);
 
   const move = async (direction, g = graph) => {
+    // console.log("player exits", player.exits);
     if (player.exits.includes(direction)) {
       const params = {
         direction
@@ -165,6 +166,10 @@ const Map = props => {
         params.next_room_id = g[player.room_id][direction].toString();
       console.log(params);
       try {
+        // if current room or next room.terrain !== "CAVE"
+        // fly
+        // else
+        // move
         const moved = await axios.post(
           // "https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/",
           "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
@@ -197,6 +202,33 @@ const Map = props => {
       }
     } else {
       alert(`You can't move ${direction.toUpperCase()}!`);
+    }
+  };
+
+  const dash = async (direction, rooms) => {
+    const body = {
+      direction: direction,
+      num_rooms: rooms.length.toString(),
+      next_room_ids: rooms.toString()
+    };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`
+    };
+    console.log("dash POST body", body);
+    try {
+      const result = await axios.post(
+        "https://lambda-treasure-hunt.herokuapp.com/api/adv/dash/",
+        body,
+        { headers: headers }
+      );
+      console.log(result.data);
+      setPlayer(Object.assign(player, result.data));
+      setCooldown(result.data.cooldown);
+      return result.data;
+    } catch (err) {
+      setCooldown(err.response.data.cooldown);
+      console.log(err.response);
     }
   };
 
@@ -234,6 +266,8 @@ const Map = props => {
           move={move}
           map={map}
           setMap={setMap}
+          getStatus={getStatus}
+          dash={dash}
         />
         {/* <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
           Get Current Room List and Graph
