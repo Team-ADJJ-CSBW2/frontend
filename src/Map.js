@@ -17,7 +17,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Map = props => {
   const classes = GameStyles();
-  const { player, setPlayer, token, cooldown, setCooldown, getStatus } = props;
+  const { player, setPlayer, token, cooldown, setCooldown } = props;
 
   const [map, setMap] = useState([]);
   const [graph, setGraph] = useState();
@@ -232,6 +232,50 @@ const Map = props => {
     }
   };
 
+  const pickupTreasure = async () => {
+    // POST to pick up treasure in room
+    console.log(player);
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`
+    };
+    try {
+      const result = await axios.post(
+        "https://lambda-treasure-hunt.herokuapp.com/api/adv/take/",
+        { name: player.items[0] },
+        { headers: headers }
+      );
+      console.log(result.data);
+      setPlayer(Object.assign(player, result.data));
+      setCooldown(result.data.cooldown);
+      return result.data;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const pickupSnitch = async () => {
+    // POST to pick up treasure in room
+    console.log(player);
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`
+    };
+    try {
+      const result = await axios.post(
+        "https://lambda-treasure-hunt.herokuapp.com/api/adv/take/",
+        { name: "golden snitch" },
+        { headers: headers }
+      );
+      console.log(result.data);
+      setPlayer(Object.assign(player, result.data));
+      setCooldown(result.data.cooldown);
+      return result.data;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div>
       <div className={classes.gridContainer}>{createMap()}</div>
@@ -266,8 +310,9 @@ const Map = props => {
           move={move}
           map={map}
           setMap={setMap}
-          getStatus={getStatus}
           dash={dash}
+          pickupTreasure={pickupTreasure}
+          pickupSnitch={pickupSnitch}
         />
         {/* <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
           Get Current Room List and Graph

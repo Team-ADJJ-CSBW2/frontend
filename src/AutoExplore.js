@@ -5,7 +5,7 @@ const AutoExplore = props => {
   const token = process.env.REACT_APP_TOKEN || localStorage.getItem("token");
 
   // const { player, graph, setGraph, move, map, setMap } = props;
-  const { player, graph, move, getStatus, dash } = props;
+  const { player, graph, move, dash, pickupTreasure, pickupSnitch } = props;
   // const [exploring, setExploring] = useState(false);
   const [roomForm, setRoomForm] = useState(0);
   const [getDirections, setGetDirections] = useState(0);
@@ -103,33 +103,12 @@ const AutoExplore = props => {
   //   // setExploring(false);
   // };
 
-  const pickupTreasure = async () => {
-    // POST to pick up treasure in room
-    console.log(player);
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`
-    };
-    try {
-      const result = await axios.post(
-        "https://lambda-treasure-hunt.herokuapp.com/api/adv/take/",
-        { name: player.items[0] },
-        { headers: headers }
-      );
-      console.log(result);
-      await sleep(result.data.cooldown + 1);
-      getStatus();
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   const findTreasure = async () => {
     // Walk around randomly
     // console.log("player", player);
     if (player.items.length) {
       // If items in current room pickup and find more
-      await pickupTreasure();
+      const result = await pickupTreasure();
       await sleep(result.cooldown + 1);
       findTreasure();
     }
@@ -141,9 +120,7 @@ const AutoExplore = props => {
     const exits = [...player.exits];
     const directions = shuffle(exits);
     const dir = directions.pop();
-    console.log(dir);
     const result = await move(dir, graph);
-    console.log("result of move", result);
     // // Get updated graph - may not be necessary
     // const updatedMap = await axios.get(
     //   "https://treasure-hunt-map.herokuapp.com/api/rooms"
@@ -159,6 +136,42 @@ const AutoExplore = props => {
       findTreasure();
     } else {
       findTreasure();
+    }
+  };
+
+  const findSnitches = async () => {
+    // Walk around randomly
+    // console.log("player", player);
+    if (player.items.includes("golden snitch")) {
+      // If items in current room pickup and find more
+      const result = await pickupSnitch();
+      await sleep(result.cooldown + 1);
+      findSnitches();
+    }
+    if (player.encumbrance >= player.strength) {
+      // if fully encumbered stop searching
+      console.log("inventory full, sell items");
+      return;
+    }
+    const exits = [...player.exits];
+    const directions = shuffle(exits);
+    const dir = directions.pop();
+    const result = await move(dir, graph);
+    // // Get updated graph - may not be necessary
+    // const updatedMap = await axios.get(
+    //   "https://Snitches-hunt-map.herokuapp.com/api/rooms"
+    // );
+    // const updatedGraph = updatedMap.data.graph;
+    // setGraph(updatedGraph);
+    await sleep(result.cooldown + 1);
+    // if Snitches in room
+    if (result.items.includes("golden snitch")) {
+      // pick it up
+      await pickupSnitch();
+      await sleep(result.cooldown + 1);
+      findSnitches();
+    } else {
+      findSnitches();
     }
   };
 
@@ -220,6 +233,7 @@ const AutoExplore = props => {
       {/* <button onClick={() => stopExploration()}>Stop Exploration</button> */}
       <button onClick={() => pickupTreasure()}>Pickup Treasure</button>
       <button onClick={() => findTreasure()}>Find Treasure</button>
+      <button onClick={() => findSnitches()}>Find Snitches</button>
       <form onSubmit={e => targetTravel(e, player.room_id, roomForm)}>
         <input
           type="number"

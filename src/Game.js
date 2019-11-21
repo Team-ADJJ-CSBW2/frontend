@@ -176,7 +176,6 @@ const Game = () => {
           setPlayer={setPlayer}
           cooldown={cooldown}
           setCooldown={setCooldown}
-          getStatus={getStatus}
         />
       </div>
     </div>
