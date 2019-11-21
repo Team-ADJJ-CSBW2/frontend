@@ -5,7 +5,15 @@ const AutoExplore = props => {
   const token = process.env.REACT_APP_TOKEN || localStorage.getItem("token");
 
   // const { player, graph, setGraph, move, map, setMap } = props;
-  const { player, graph, move, dash, pickupTreasure, pickupSnitch } = props;
+  const {
+    player,
+    graph,
+    move,
+    dash,
+    pickupTreasure,
+    pickupSnitch,
+    setGraph
+  } = props;
   // const [exploring, setExploring] = useState(false);
   const [roomForm, setRoomForm] = useState(0);
   const [getDirections, setGetDirections] = useState(0);
@@ -88,7 +96,7 @@ const AutoExplore = props => {
 
     // Get updated graph - may not be necessary
     const updatedMap = await axios.get(
-      "https://treasure-hunt-map.herokuapp.com/api/rooms"
+      "https://dark-dimension-map.herokuapp.com/api/rooms"
     );
     const updatedGraph = updatedMap.data.graph;
 
@@ -158,11 +166,11 @@ const AutoExplore = props => {
     const dir = directions.pop();
     const result = await move(dir, graph);
     // // Get updated graph - may not be necessary
-    // const updatedMap = await axios.get(
-    //   "https://Snitches-hunt-map.herokuapp.com/api/rooms"
-    // );
-    // const updatedGraph = updatedMap.data.graph;
-    // setGraph(updatedGraph);
+    const updatedMap = await axios.get(
+      "https://dark-dimension-map.herokuapp.com/api/rooms"
+    );
+    const updatedGraph = updatedMap.data.graph;
+    setGraph(updatedGraph);
     await sleep(result.cooldown + 1);
     // if Snitches in room
     if (result.items.includes("golden snitch")) {

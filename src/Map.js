@@ -25,7 +25,7 @@ const Map = props => {
   useEffect(() => {
     axios
       // .get("http://localhost:5000/api/rooms")
-      .get("https://treasure-hunt-map.herokuapp.com/api/rooms")
+      .get("https://dark-dimension-map.herokuapp.com/api/rooms")
       .then(res => {
         console.log(res.data);
         setMap(res.data.rooms);
@@ -178,13 +178,34 @@ const Map = props => {
         );
         setPlayer(Object.assign(player, moved.data));
         setCooldown(moved.data.cooldown);
-        console.log(moved.data);
+        console.log("moved.data", moved.data);
         // only post to pg server if proper response from lambda and room does not already exist
         if (moved && !map.find(r => r.room_id === moved.data.room_id)) {
+          const {
+            coordinates,
+            room_id,
+            title,
+            description,
+            elevation,
+            terrain,
+            items,
+            exits
+          } = moved.data;
+          const newRoom = {
+            coordinates: coordinates,
+            room_id: room_id,
+            description: description,
+            title: title,
+            elevation: elevation,
+            terrain: terrain,
+            items: items,
+            exits: exits
+          };
           try {
+            console.log("moved.data inside if", moved.data);
             const update = await axios.post(
-              "https://treasure-hunt-map.herokuapp.com/api/rooms",
-              moved.data
+              "https://dark-dimension-map.herokuapp.com/api/rooms",
+              newRoom
             );
             setMap(update.data.rooms);
             setGraph(update.data.graph);
