@@ -171,8 +171,8 @@ const Map = props => {
         // else
         // move
         const moved = await axios.post(
-          // "https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/",
-          "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
+          "https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/",
+          // "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
           params,
           { headers: headers }
         );
@@ -294,6 +294,7 @@ const Map = props => {
       return result.data;
     } catch (err) {
       console.log(err);
+      return player
     }
   };
 
