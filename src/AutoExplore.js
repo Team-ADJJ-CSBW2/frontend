@@ -3,12 +3,22 @@ import axios from "axios";
 
 const AutoExplore = props => {
   const token = process.env.REACT_APP_TOKEN || localStorage.getItem("token");
+  const angToken = process.env.ANG_TOKEN;
 
   // const { player, graph, setGraph, move, map, setMap } = props;
-  const { player, graph, move, getStatus, dash } = props;
+  const {
+    player,
+    graph,
+    move,
+    dash,
+    pickupTreasure,
+    pickupSnitch,
+    setGraph
+  } = props;
   // const [exploring, setExploring] = useState(false);
   const [roomForm, setRoomForm] = useState(0);
   const [getDirections, setGetDirections] = useState(0);
+  const [wellData, setWellData] = useState("");
 
   const shuffle = array => {
     // console.log("shuffle", array);
@@ -35,9 +45,9 @@ const AutoExplore = props => {
         searched[last] = 1;
         let directions = Object.keys(exits);
         for (const d of directions) {
-          if (exits[d] === "?")
-            return `Direction ${d} in Room ${last} not yet explored! Directions to Room ${last} are ${cur[1]}`;
-          path.push([cur[0].concat(exits[d]), cur[1].concat(d)]);
+          if (exits[d] !== "?")
+            path.push([cur[0].concat(exits[d]), cur[1].concat(d)]);
+          // console.log(`Direction ${d} in Room ${last} not yet explored! Directions to Room ${last} are ${cur[1]}`;
         }
       }
     }
@@ -88,7 +98,7 @@ const AutoExplore = props => {
 
     // Get updated graph - may not be necessary
     const updatedMap = await axios.get(
-      "https://treasure-hunt-map.herokuapp.com/api/rooms"
+      "https://dark-dimension-map.herokuapp.com/api/rooms"
     );
     const updatedGraph = updatedMap.data.graph;
 
@@ -103,33 +113,12 @@ const AutoExplore = props => {
   //   // setExploring(false);
   // };
 
-  const pickupTreasure = async () => {
-    // POST to pick up treasure in room
-    console.log(player);
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`
-    };
-    try {
-      const result = await axios.post(
-        "https://lambda-treasure-hunt.herokuapp.com/api/adv/take/",
-        { name: player.items[0] },
-        { headers: headers }
-      );
-      console.log(result);
-      await sleep(result.data.cooldown + 1);
-      getStatus();
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   const findTreasure = async () => {
     // Walk around randomly
     // console.log("player", player);
     if (player.items.length) {
       // If items in current room pickup and find more
-      await pickupTreasure();
+      const result = await pickupTreasure();
       await sleep(result.cooldown + 1);
       findTreasure();
     }
@@ -141,9 +130,7 @@ const AutoExplore = props => {
     const exits = [...player.exits];
     const directions = shuffle(exits);
     const dir = directions.pop();
-    console.log(dir);
     const result = await move(dir, graph);
-    console.log("result of move", result);
     // // Get updated graph - may not be necessary
     // const updatedMap = await axios.get(
     //   "https://treasure-hunt-map.herokuapp.com/api/rooms"
@@ -204,7 +191,7 @@ const AutoExplore = props => {
     const newRoom = result.room_id;
 
     // Use resolved promise from move to set cooldown
-    await sleep(result.cooldown + 1);
+    await sleep(result.cooldown);
     if (newRoom !== target) targetTravel(e, newRoom, target);
   };
 
@@ -214,12 +201,102 @@ const AutoExplore = props => {
     console.log(result);
   };
 
+  const ls8 = async ls8Array => {
+    const ls8 = { binary: ls8Array };
+    const result = await axios.post(
+      "https://ls8-flask.herokuapp.com/binary",
+      ls8
+    );
+    return result.data.message;
+  };
+
+  const wishingWell = async () => {
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token 8dd017b9dcdcd1b3fca479b8e899adee496a1ba9`
+    };
+    const wellData = await axios.post(
+      "https://lambda-treasure-hunt.herokuapp.com/api/adv/examine/",
+      { name: "Well" },
+      { headers: headers }
+    );
+    let ls8String = wellData.data.description.slice(41);
+    const ls8Data = ls8String.split("\n").map(el => parseInt(el, 2));
+    const goToRoom = await ls8(ls8Data);
+    console.log(goToRoom);
+    return goToRoom;
+  };
+
+  const findSnitches = async currentRoom => {
+    // Call wishing well and set resulting room
+    let wellData;
+    try {
+      wellData = await wishingWell();
+    } catch (err) {
+      await sleep(1);
+      findSnitches(currentRoom);
+    }
+    console.log("wellData", wellData);
+    const directions = findPath(currentRoom, wellData);
+    // directions by cardinal direction
+    const travelDirections = directions[1];
+    // rooms in directions path
+    const roomDirections = directions[0].slice(1);
+    if (travelDirections.length === 0) {
+      await sleep(1);
+      findSnitches(currentRoom);
+    }
+    console.log(directions);
+
+    //! DASH
+    // Check first direction
+    const nextDirection = travelDirections[0];
+    let dashArray = [];
+    // loop over directions
+    for (let i = 0; i < travelDirections.length; i++) {
+      // if next direction === current direction
+      if (travelDirections[i] === nextDirection) {
+        // add room number to dash array
+        dashArray.push(roomDirections[i]);
+      } else {
+        // else break loop
+        break;
+      }
+    }
+
+    // if dashArray.length >= 3
+    let result;
+    if (dashArray.length >= 3) {
+      // conver dashArray and into string
+      // dashString = dashArray.toString()
+      // dash
+      result = await dash(nextDirection, dashArray);
+    } else {
+      // Get first direction and move, wait for promise to resolve
+      result = await move(nextDirection);
+    }
+
+    const newRoom = result.room_id;
+
+    // Use resolved promise from move to set cooldown
+    await sleep(result.cooldown);
+    if (newRoom !== wellData) findSnitches(newRoom);
+    else {
+      result = await pickupSnitch();
+      await sleep(result.cooldown);
+      findSnitches(newRoom);
+    }
+  };
+
   return (
     <div>
       <button onClick={() => explore(player.room_id)}>Auto Explore</button>
       {/* <button onClick={() => stopExploration()}>Stop Exploration</button> */}
       <button onClick={() => pickupTreasure()}>Pickup Treasure</button>
       <button onClick={() => findTreasure()}>Find Treasure</button>
+      <button onClick={() => findSnitches(player.room_id)}>
+        Find Snitches
+      </button>
       <form onSubmit={e => targetTravel(e, player.room_id, roomForm)}>
         <input
           type="number"

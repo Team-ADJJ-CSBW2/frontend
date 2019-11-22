@@ -17,7 +17,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Map = props => {
   const classes = GameStyles();
-  const { player, setPlayer, token, cooldown, setCooldown, getStatus } = props;
+  const { player, setPlayer, token, cooldown, setCooldown } = props;
 
   const [map, setMap] = useState([]);
   const [graph, setGraph] = useState();
@@ -25,7 +25,7 @@ const Map = props => {
   useEffect(() => {
     axios
       // .get("http://localhost:5000/api/rooms")
-      .get("https://treasure-hunt-map.herokuapp.com/api/rooms")
+      .get("https://dark-dimension-map.herokuapp.com/api/rooms")
       .then(res => {
         console.log(res.data);
         setMap(res.data.rooms);
@@ -171,20 +171,41 @@ const Map = props => {
         // else
         // move
         const moved = await axios.post(
-          // "https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/",
-          "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
+          "https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/",
+          // "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/",
           params,
           { headers: headers }
         );
         setPlayer(Object.assign(player, moved.data));
         setCooldown(moved.data.cooldown);
-        console.log(moved.data);
+        console.log("moved.data", moved.data);
         // only post to pg server if proper response from lambda and room does not already exist
         if (moved && !map.find(r => r.room_id === moved.data.room_id)) {
+          const {
+            coordinates,
+            room_id,
+            title,
+            description,
+            elevation,
+            terrain,
+            items,
+            exits
+          } = moved.data;
+          const newRoom = {
+            coordinates: coordinates,
+            room_id: room_id,
+            description: description,
+            title: title,
+            elevation: elevation,
+            terrain: terrain,
+            items: items,
+            exits: exits
+          };
           try {
+            console.log("moved.data inside if", moved.data);
             const update = await axios.post(
-              "https://treasure-hunt-map.herokuapp.com/api/rooms",
-              moved.data
+              "https://dark-dimension-map.herokuapp.com/api/rooms",
+              newRoom
             );
             setMap(update.data.rooms);
             setGraph(update.data.graph);
@@ -232,6 +253,51 @@ const Map = props => {
     }
   };
 
+  const pickupTreasure = async () => {
+    // POST to pick up treasure in room
+    console.log(player);
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`
+    };
+    try {
+      const result = await axios.post(
+        "https://lambda-treasure-hunt.herokuapp.com/api/adv/take/",
+        { name: player.items[0] },
+        { headers: headers }
+      );
+      console.log(result.data);
+      setPlayer(Object.assign(player, result.data));
+      setCooldown(result.data.cooldown);
+      return result.data;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const pickupSnitch = async () => {
+    // POST to pick up treasure in room
+    console.log(player);
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`
+    };
+    try {
+      const result = await axios.post(
+        "https://lambda-treasure-hunt.herokuapp.com/api/adv/take/",
+        { name: "golden snitch" },
+        { headers: headers }
+      );
+      console.log(result.data);
+      setPlayer(Object.assign(player, result.data));
+      setCooldown(result.data.cooldown);
+      return result.data;
+    } catch (err) {
+      console.log(err);
+      return player
+    }
+  };
+
   return (
     <div>
       <div className={classes.gridContainer}>{createMap()}</div>
@@ -266,8 +332,9 @@ const Map = props => {
           move={move}
           map={map}
           setMap={setMap}
-          getStatus={getStatus}
           dash={dash}
+          pickupTreasure={pickupTreasure}
+          pickupSnitch={pickupSnitch}
         />
         {/* <button onClick={() => console.log("rooms:", map, "graph:", graph)}>
           Get Current Room List and Graph
