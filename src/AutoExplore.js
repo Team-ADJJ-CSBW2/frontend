@@ -3,7 +3,9 @@ import axios from "axios";
 
 const AutoExplore = props => {
   const token = process.env.REACT_APP_TOKEN || localStorage.getItem("token");
-  const angToken = process.env.ANG_TOKEN;
+  // console.log(token);
+  const angToken = process.env.REACT_APP_ANG_TOKEN;
+  // console.log(angToken);
 
   // const { player, graph, setGraph, move, map, setMap } = props;
   const {
@@ -18,7 +20,7 @@ const AutoExplore = props => {
   // const [exploring, setExploring] = useState(false);
   const [roomForm, setRoomForm] = useState(0);
   const [getDirections, setGetDirections] = useState(0);
-  const [wellData, setWellData] = useState("");
+  // const [wellData, setWellData] = useState("");
 
   const shuffle = array => {
     // console.log("shuffle", array);
@@ -29,9 +31,9 @@ const AutoExplore = props => {
     return array;
   };
 
-  const findPath = (current, target) => {
+  const findPath = (currentRoom, target) => {
     const path = [];
-    path.push([[current], []]);
+    path.push([[currentRoom], []]);
     const searched = {};
     while (path.length > 0) {
       let cur = path.shift();
@@ -53,9 +55,9 @@ const AutoExplore = props => {
     }
   };
 
-  const newRoomDirections = (current, g = graph) => {
+  const newRoomDirections = (currentRoom, g = graph) => {
     const path = [];
-    path.push([[current], []]);
+    path.push([[currentRoom], []]);
     const searched = {};
     while (path.length > 0) {
       let cur = path.shift();
@@ -211,9 +213,11 @@ const AutoExplore = props => {
   };
 
   const wishingWell = async () => {
+    // Retrieve go to room from well
+    // TODO: Change to endpoint, teammate feeds data to endpoint
     const headers = {
       "Content-Type": "application/json",
-      Authorization: `Token 8dd017b9dcdcd1b3fca479b8e899adee496a1ba9`
+      Authorization: `Token ${angToken}`
     };
     const wellData = await axios.post(
       "https://lambda-treasure-hunt.herokuapp.com/api/adv/examine/",
@@ -223,36 +227,37 @@ const AutoExplore = props => {
     let ls8String = wellData.data.description.slice(41);
     const ls8Data = ls8String.split("\n").map(el => parseInt(el, 2));
     const goToRoom = await ls8(ls8Data);
-    console.log(goToRoom);
+    // console.log(goToRoom);
     return goToRoom;
   };
 
   const findSnitches = async currentRoom => {
-    // Call wishing well and set resulting room
+    // Call wishing well and set resulting room as target room
     let wellData;
+    // Try for edge case of 400 when cooldown is in effect
     try {
       wellData = await wishingWell();
     } catch (err) {
-      await sleep(1);
+      // Adding conditional for no-response from wishingWell
+      await sleep(wellData.cooldown || 10);
       findSnitches(currentRoom);
     }
-    console.log("wellData", wellData);
     const directions = findPath(currentRoom, wellData);
-    // directions by cardinal direction
+    // directions by cardinal direction to target room
     const travelDirections = directions[1];
-    // rooms in directions path
+    // rooms in directions path to target room
     const roomDirections = directions[0].slice(1);
     if (travelDirections.length === 0) {
       await sleep(1);
       findSnitches(currentRoom);
     }
-    console.log(directions);
+    console.log("Directions to target room", directions);
 
     //! DASH
     // Check first direction
     const nextDirection = travelDirections[0];
     let dashArray = [];
-    // loop over directions
+    // loop over directions to see
     for (let i = 0; i < travelDirections.length; i++) {
       // if next direction === current direction
       if (travelDirections[i] === nextDirection) {
@@ -264,18 +269,26 @@ const AutoExplore = props => {
       }
     }
 
-    // if dashArray.length >= 3
+    // if 3 or more of the next moves are the same direction
+    // DASH
     let result;
-    if (dashArray.length >= 3) {
-      // conver dashArray and into string
-      // dashString = dashArray.toString()
-      // dash
-      result = await dash(nextDirection, dashArray);
-    } else {
-      // Get first direction and move, wait for promise to resolve
-      result = await move(nextDirection);
+    try {
+      if (dashArray.length >= 3) {
+        // dash
+        result = await dash(nextDirection, dashArray);
+      } else {
+        // Get first direction and move, wait for promise to resolve
+        result = await move(nextDirection);
+      }
+    } catch (err) {
+      await sleep(result.cooldown || 10);
+      findSnitches(currentRoom);
     }
 
+    if (!result) {
+      await sleep(10);
+      findSnitches(currentRoom);
+    }
     const newRoom = result.room_id;
 
     // Use resolved promise from move to set cooldown
@@ -293,7 +306,6 @@ const AutoExplore = props => {
       <button onClick={() => explore(player.room_id)}>Auto Explore</button>
       {/* <button onClick={() => stopExploration()}>Stop Exploration</button> */}
       <button onClick={() => pickupTreasure()}>Pickup Treasure</button>
-      <button onClick={() => findTreasure()}>Find Treasure</button>
       <button onClick={() => findSnitches(player.room_id)}>
         Find Snitches
       </button>

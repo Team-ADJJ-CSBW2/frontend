@@ -222,7 +222,7 @@ const Map = props => {
         console.log(err.response);
       }
     } else {
-      alert(`You can't move ${direction.toUpperCase()}!`);
+      console.log("You can't move in that direction!");
     }
   };
 
@@ -294,7 +294,7 @@ const Map = props => {
       return result.data;
     } catch (err) {
       console.log(err);
-      return player
+      return player;
     }
   };
 
